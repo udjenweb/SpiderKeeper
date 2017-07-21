@@ -136,6 +136,35 @@ class SpiderAgent():
             db.session.add(job_execution)
             db.session.commit()
 
+    def _start_spider_no_commit(self, job_instance):
+        project = Project.find_project_by_id(job_instance.project_id)
+        spider_name = job_instance.spider_name
+        arguments = {}
+        if job_instance.spider_arguments:
+            arguments = dict(map(lambda x: x.split("="), job_instance.spider_arguments.split(",")))
+        threshold = 0
+        daemon_size = len(self.spider_service_instances)
+        if job_instance.priority == JobPriority.HIGH:
+            threshold = int(daemon_size / 2)
+        if job_instance.priority == JobPriority.HIGHEST:
+            threshold = int(daemon_size)
+        threshold = 1 if threshold == 0 else threshold
+        candidates = self.spider_service_instances
+        leaders = []
+        # TODO optimize some better func to vote the leader
+        for i in range(threshold):
+            leaders.append(random.choice(candidates))
+        for leader in leaders:
+            serviec_job_id = leader.start_spider(project.project_name, spider_name, arguments)
+            job_execution = JobExecution()
+            job_execution.project_id = job_instance.project_id
+            job_execution.service_job_execution_id = serviec_job_id
+            job_execution.job_instance_id = job_instance.id
+            job_execution.create_time = datetime.datetime.now()
+            job_execution.running_on = leader.server
+            db.session.add(job_execution)
+            db.session.commit()
+
     def cancel_spider(self, job_execution):
         job_instance = JobInstance.find_job_instance_by_id(job_execution.job_instance_id)
         project = Project.find_project_by_id(job_instance.project_id)

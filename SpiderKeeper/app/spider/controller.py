@@ -533,6 +533,13 @@ def job_dashboard(project_id):
     return render_template("job_dashboard.html", job_status=JobExecution.list_jobs(project_id))
 
 
+@app.route("/project/<project_id>/job/batch_run")
+def batch_run(project_id):
+    spider_instance_list = SpiderInstance.list_spiders(project_id)
+    return render_template("batch_run.html",
+                           spider_instance_list=spider_instance_list)
+
+
 @app.route("/project/<project_id>/job/periodic")
 def job_periodic(project_id):
     project = Project.find_project_by_id(project_id)
@@ -565,6 +572,31 @@ def job_add(project_id):
         db.session.add(job_instance)
         db.session.commit()
     return redirect(request.referrer, code=302)
+
+
+# add_batch
+@app.route("/project/<project_id>/job/add_batch", methods=['post'])
+def job_add_batch(project_id):
+    project = Project.find_project_by_id(project_id)
+    try:
+        for spider_name in request.form.getlist('spider_name'):
+            job_instance = JobInstance()
+            job_instance.spider_name = spider_name
+            job_instance.project_id = project_id
+            job_instance.spider_arguments = request.form['spider_arguments']
+            job_instance.priority = request.form.get('priority', 0)
+            job_instance.run_type = request.form['run_type']
+
+            # if job_instance.run_type == JobRunType.ONETIME:
+            job_instance.enabled = -1
+            db.session.add(job_instance)
+            db.session.commit()
+            agent.start_spider(job_instance)
+    except Exception:
+        pass
+        raise
+    return redirect('/project/{project_id}/job/dashboard'
+                    ''.format(project_id=project_id), code=302)
 
 
 @app.route("/project/<project_id>/jobexecs/<job_exec_id>/stop")

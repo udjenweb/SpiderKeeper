@@ -84,11 +84,18 @@
             </div>
             <ul class="sidebar-menu">
                 <li class="header">JOBS</li>
+
                 <li><a href="/project/{{ project.id }}/job/dashboard"><i
                         class="fa fa-dashboard text-blue"></i>
                     <span>Dashboard</span></a></li>
+
+                <li><a href="/project/{{ project.id }}/job/batch_run"><i class="fa  fa-forward text-blue"></i>
+                    <span>batch run</span></a></li>
+
                 <li><a href="/project/{{ project.id }}/job/periodic"><i class="fa fa-tasks text-green"></i>
                     <span>Periodic Jobs</span></a></li>
+
+
                 <li class="header">SPIDERS</li>
                 <li><a href="/project/{{ project.id }}/spider/dashboard"><i class="fa fa-flask text-red"></i>
                     <span>Dashboard</span></a>

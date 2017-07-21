@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content_header %}
+<h1>Spider</h1>
+{% endblock %}
+{% block content_body %}
+<div class="box">
+    <div class="box-header">
+        <h3 class="box-title">Periodic jobs (Spiders)</h3>
+    </div>
+    <div class="box-body table-responsive">
+        <form action="/project/{{ project.id }}/job/add_batch" method="post">
+
+            <div class="cell">
+                <div class="col-lg-2">
+
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select class="form-control" name="priority">
+                            <option label="Low" value="number:-1">Low</option>
+                            <option label="Normal" value="0" selected="selected">Normal</option>
+                            <option label="High" value="1">High</option>
+                            <option label="Highest" value="2">Highest</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+
+                    <div class="form-group">
+                        <label>Args</label>
+                        <input type="text" name="spider_arguments" class="form-control" placeholder="foo=1,bar=2">
+                    </div>
+                </div>
+                <input type="hidden" name="run_type" value="onetime">
+                <div class="col-lg-2" style="margin-top: 25px">
+                    <button type="submit" class="btn btn-success">run</button>
+                </div>
+            </div>
+
+            <table class="table table-striped">
+                <tr>
+                    <th style="width: 50px">
+                        <input type="checkbox" checked />
+                    </th>
+                    <th style="width: 50px">id</th>
+                    <th style="width: 50px">Spider Name</th>
+                    <th style="width: 50px">Last Runtime</th>
+                    <th style="width: 50px">Avg Runtime</th>
+                </tr>
+                {% for spider_instance in spider_instance_list %}
+                <tr>
+                    <td>
+                        <input type="checkbox" name="spider_name" value="{{ spider_instance.spider_name }}" checked />
+                    </td>
+                    <td>{{ spider_instance.spider_instance_id }}</td>
+                    <td>{{ spider_instance.spider_name }}</td>
+                    <td>{{ spider_instance.spider_last_runtime }}</td>
+                    <td>{{ readable_time(spider_instance.spider_avg_runtime) }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </form>
+    </div>
+</div>
+{% endblock %}
