@@ -20,8 +20,25 @@
         <h3 class="box-title">Periodic jobs (Spiders)</h3>
     </div>
     <div class="box-body table-responsive">
+
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default dropdown-toggle"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              selected
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a href="#" onclick="batch_remove();"><span class="label label-danger">Remove</span></a></li>
+            </ul>
+          </div>
+
+
+        <form id="batch_form" method="post">
         <table class="table table-striped">
             <tr>
+                <th style="width: 10px">
+                    <input id="batch_check_title" type="checkbox" checked />
+                </th>
                 <th style="width: 10px">#</th>
                 <th style="width: 30px">Month</th>
                 <th style="width: 30px">Day of Month</th>
@@ -36,6 +53,10 @@
             </tr>
             {% for job_instance in job_instance_list %}
             <tr>
+                <td>
+                    <input class="batch_check" type="checkbox" name="job_id"
+                           value="{{ job_instance.job_instance_id }}" checked />
+                </td>
                 <td><a name="{{ job_instance.job_instance_id }}">{{ job_instance.job_instance_id }}</a></td>
                 <td>{{ job_instance.cron_month }}</td>
                 <td>{{ job_instance.cron_day_of_month }}</td>
@@ -83,6 +104,7 @@
             </tr>
             {% endfor %}
         </table>
+        </form>
     </div>
 </div>
 
@@ -196,3 +218,25 @@
 </div>
 <!-- /.modal -->
 {% endblock %}
+
+
+
+
+{% block script %}
+<script>
+$(document).ready(function () {
+    $('#batch_check_title').click(function () {
+        $('.batch_check').each(function () {
+            $(this).prop('checked', $('#batch_check_title').is(':checked'))
+        })
+    })
+});
+
+function batch_remove() {
+    $('#batch_form')
+        .attr('action', '/project/{{ project.id }}/jobs/remove')
+        .submit()
+}
+</script>
+{% endblock %}
+
