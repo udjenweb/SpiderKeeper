@@ -578,24 +578,29 @@ def job_add(project_id):
 @app.route("/project/<project_id>/job/add_batch", methods=['post'])
 def job_add_batch(project_id):
     project = Project.find_project_by_id(project_id)
-    try:
-        for spider_name in request.form.getlist('spider_name'):
-            job_instance = JobInstance()
-            job_instance.spider_name = spider_name
-            job_instance.project_id = project_id
-            job_instance.spider_arguments = request.form['spider_arguments']
-            job_instance.priority = request.form.get('priority', 0)
-            job_instance.run_type = request.form['run_type']
-
-            # if job_instance.run_type == JobRunType.ONETIME:
+    for spider_name in request.form.getlist('spider_name'):
+        job_instance = JobInstance()
+        job_instance.spider_name = spider_name
+        job_instance.project_id = project_id
+        job_instance.spider_arguments = request.form['spider_arguments']
+        job_instance.priority = request.form.get('priority', 0)
+        job_instance.run_type = request.form['run_type']
+        if job_instance.run_type == JobRunType.ONETIME:
             job_instance.enabled = -1
             db.session.add(job_instance)
             db.session.commit()
             agent.start_spider(job_instance)
-    except Exception:
-        pass
-        raise
-    return redirect('/project/{project_id}/job/dashboard'
+        if job_instance.run_type == JobRunType.PERIODIC:
+            job_instance.cron_minutes = request.form.get('cron_minutes') or '0'
+            job_instance.cron_hour = request.form.get('cron_hour') or '*'
+            job_instance.cron_day_of_month = request.form.get(
+                'cron_day_of_month') or '*'
+            job_instance.cron_day_of_week = request.form.get(
+                'cron_day_of_week') or '*'
+            job_instance.cron_month = request.form.get('cron_month') or '*'
+            db.session.add(job_instance)
+    db.session.commit()
+    return redirect('/project/{project_id}/job/periodic'
                     ''.format(project_id=project_id), code=302)
 
 
@@ -624,6 +629,15 @@ def job_run(project_id, job_instance_id):
 def job_remove(project_id, job_instance_id):
     job_instance = JobInstance.query.filter_by(project_id=project_id, id=job_instance_id).first()
     db.session.delete(job_instance)
+    db.session.commit()
+    return redirect(request.referrer, code=302)
+
+
+@app.route("/project/<project_id>/jobs/remove", methods=['post'])  # must be delete
+def job_remove_many(project_id):
+    for job_id in request.form.getlist('job_id'):
+        job_instance = JobInstance.query.filter_by(project_id=project_id, id=job_id).first()
+        db.session.delete(job_instance)
     db.session.commit()
     return redirect(request.referrer, code=302)
 
