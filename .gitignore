@@ -8,3 +8,16 @@ venv
 dist
 build
 SpiderKeeper.db
+
+
+dbs/
+eggs/
+logs/
+
+log/
+!log/.dummy
+
+results/
+!results/.dummy
+
+twistd.pid

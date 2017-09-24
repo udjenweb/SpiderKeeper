@@ -12,3 +12,17 @@ class TkspiderItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass
+
+
+class QuotesItems(scrapy.Item):
+    """"""
+    tags = scrapy.Field()
+
+
+class AuthorItem(scrapy.Item):
+    """"""
+    name = scrapy.Field()
+    birth_date = scrapy.Field()
+    bio = scrapy.Field()
+
+
