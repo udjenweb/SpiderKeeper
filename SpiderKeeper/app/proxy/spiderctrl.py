@@ -62,6 +62,11 @@ class SpiderServiceProxy(object):
         return self._server
 
 
+import requests
+import json
+import datetime
+
+
 class SpiderAgent():
     def __init__(self):
         self.spider_service_instances = []
@@ -87,9 +92,8 @@ class SpiderAgent():
     def sync_job_status(self, project):
         for spider_service_instance in self.spider_service_instances:
             job_status = spider_service_instance.get_job_list(project.project_name)
-            job_execution_list = JobExecution.list_uncomplete_job()
-            job_execution_dict = dict(
-                [(job_execution.service_job_execution_id, job_execution) for job_execution in job_execution_list])
+            job_execution_dict = {job.service_job_execution_id: job
+                                  for job in JobExecution.list_uncomplete_job()}
             # running
             for job_execution_info in job_status[SpiderStatus.RUNNING]:
                 job_execution = job_execution_dict.get(job_execution_info['id'])
@@ -104,6 +108,25 @@ class SpiderAgent():
                     job_execution.start_time = job_execution_info['start_time']
                     job_execution.end_time = job_execution_info['end_time']
                     job_execution.running_status = SpiderStatus.FINISHED
+
+                    job_instance = JobInstance.find_job_instance_by_id(
+                        job_execution.job_instance_id)
+                    log_url = spider_service_instance.log_url(project.project_name,
+                                                    job_instance.spider_name,
+                                                    job_execution.service_job_execution_id)
+                    raw = requests.get(log_url).text or None
+                    if raw:
+                        raw = raw.split('INFO: Closing spider (finished)')[1]
+                        raw = [l.strip() for l in raw.split('\n')]
+                        raw = [l for l in raw if l]
+                        raw = raw[1:-1]
+                        raw = [l for l in raw if 'datetime' not in l]
+                        raw = ''.join(raw).strip()
+                        raw = raw[:-1] + '}'  # fix after cat datetime lines
+                        raw = raw.replace('\'', "\"")
+                        job_execution.scrappy_stats = raw
+
+                        # spider_statistic = json.loads(raw)
             # commit
             db.session.commit()
 

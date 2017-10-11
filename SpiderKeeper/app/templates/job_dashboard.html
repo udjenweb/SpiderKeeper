@@ -153,6 +153,7 @@
                 <th style="width: 20px">Priority</th>
                 <th style="width: 40px">Runtime</th>
                 <th style="width: 120px">Started</th>
+                <th style="width: 120px">completed</th>
                 <th style="width: 10px">Log</th>
                 <th style="width: 10px">Status</th>
             </tr>
@@ -184,6 +185,11 @@
                 {% endif %}
                 <td>{{ timedelta(job.end_time,job.start_time) }}</td>
                 <td>{{ job.start_time }}</td>
+                <td>
+                    {{ job.scrappy_stats.item_scraped_count }}/
+                    {{ job.scrappy_stats.total_count_ads }}
+
+                </td>
                 <td><a href="/project/{{ project.id }}/jobexecs/{{ job.job_execution_id }}/log" target="_blank"
                        data-toggle="tooltip" data-placement="top" title="{{ job.service_job_execution_id }}">Log</a>
                 </td>
