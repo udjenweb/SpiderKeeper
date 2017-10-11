@@ -530,7 +530,8 @@ def project_manage():
 
 @app.route("/project/<project_id>/job/dashboard")
 def job_dashboard(project_id):
-    return render_template("job_dashboard.html", job_status=JobExecution.list_jobs(project_id))
+    job_status = JobExecution.list_jobs(project_id)
+    return render_template("job_dashboard.html", job_status=job_status)
 
 
 @app.route("/project/<project_id>/job/batch_run")

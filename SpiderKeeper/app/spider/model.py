@@ -1,6 +1,7 @@
 import datetime
 from sqlalchemy import desc
 from SpiderKeeper.app import db, Base
+import json
 
 
 class Project(Base):
@@ -150,8 +151,14 @@ class JobExecution(Base):
     running_status = db.Column(db.INTEGER, default=SpiderStatus.PENDING)
     running_on = db.Column(db.Text)
 
+    # json dump of scrappy statistic (end of log)
+    scrappy_stats = db.Column(db.Text)
+
     def to_dict(self):
         job_instance = JobInstance.query.filter_by(id=self.job_instance_id).first()
+        scrappy_stats = None
+        if self.scrappy_stats:
+            scrappy_stats = json.loads(self.scrappy_stats)
         return {
             'project_id': self.project_id,
             'job_execution_id': self.id,
@@ -162,6 +169,7 @@ class JobExecution(Base):
             'end_time': self.end_time.strftime('%Y-%m-%d %H:%M:%S') if self.end_time else None,
             'running_status': self.running_status,
             'running_on': self.running_on,
+            'scrappy_stats': scrappy_stats,
             'job_instance': job_instance.to_dict() if job_instance else {}
         }
 
