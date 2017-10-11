@@ -3,15 +3,17 @@ from scrapy.loader import ItemLoader
 from ..items import AuthorItem, QuotesItems
 from ..loaders import AuthorLoader, QuotesLoader
 from . import BaseSpider
+import random
+from scrapy import Request
 
 
 class QuotesSpider(BaseSpider):
 
     name = "quotes"  # уникальное паука имя для проекта
 
-    start_urls = [
-        'http://quotes.toscrape.com/page/1/'
-    ]
+    def start_requests(self):
+        self.total_count_ads = 0
+        yield scrapy.Request('http://quotes.toscrape.com/page/1/', self.parse)
 
     # def start_requests(self):
     #     urls = [
@@ -49,19 +51,22 @@ class QuotesSpider(BaseSpider):
     # вызывается поле успешной загрузки страниы
     def parse(self, response):
         import time
-        time.sleep(60)
+        # time.sleep(60)
         # l = QuotesLoader(item=QuotesItems(), response=response)
         # l.add_css('tags', 'div.tags a.tag::text')
         #
         # print(l.load_item())
         # exit(1)
         # вытаскиваем ссылки дальше по списку
-        for href in response.css('li.next a::attr(href)'):
-            yield response.follow(href, self.parse)         # ВНИМАНИЕ: self.parse
+        # for href in response.css('li.next a::attr(href)'):
+        #     yield response.follow(href, self.parse)         # ВНИМАНИЕ: self.parse
 
         # вытаскиваем ссылки на страницы авторов
         for href in response.css('.author + a::attr(href)'):
+            self.total_count_ads += 1
             yield response.follow(href, self.parse_author)  # ВНИМАНИЕ: self.parse_author
+            yield response.follow('/udnefined_page_xdsedst', self.parse_author)
+            yield Request(url='http://some-unavailabel-site.com/', callback=self.parse_author)
 
     # вытаскиваем данные по автору
     def parse_author(self, response):
@@ -80,6 +85,9 @@ class QuotesSpider(BaseSpider):
         # l.add_css('bio', '.author-description::text')
         result = l.load_item()
         self.logger.debug(result)
+
+        if random.randint(1, 3) == 1:
+            raise KeyError('crazy monkey error')
         return result
     # ВАЖНО: даная страница 'http://quotes.toscrape.com/page/1/'
     #       содержит цитаты
